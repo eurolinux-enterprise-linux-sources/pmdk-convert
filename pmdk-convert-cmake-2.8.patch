@@ -1,0 +1,59 @@
+diff -up pmdk-convert-1.5/CMakeLists.txt.orig pmdk-convert-1.5/CMakeLists.txt
+--- pmdk-convert-1.5/CMakeLists.txt.orig	2018-10-26 12:23:57.000000000 -0400
++++ pmdk-convert-1.5/CMakeLists.txt	2019-03-22 12:43:08.677276000 -0400
+@@ -31,7 +31,7 @@
+ 
+ include(${CMAKE_SOURCE_DIR}/utils/utils.cmake)
+ 
+-cmake_minimum_required(VERSION 3.3)
++cmake_minimum_required(VERSION 2.8)
+ project(pmdk-convert C)
+ 
+ set(VERSION_MAJOR 1)
+@@ -92,6 +92,7 @@ macro(add_c_flag flag)
+ endmacro()
+ 
+ if(NOT MSVC)
++	add_c_flag(-std=gnu99)
+ 	add_c_flag(-fno-common)
+ 	add_c_flag(-Wall)
+ 	add_c_flag(-Wconversion)
+diff -up pmdk-convert-1.5/tests/CMakeLists.txt.orig pmdk-convert-1.5/tests/CMakeLists.txt
+--- pmdk-convert-1.5/tests/CMakeLists.txt.orig	2018-10-26 12:23:57.000000000 -0400
++++ pmdk-convert-1.5/tests/CMakeLists.txt	2019-03-22 12:43:08.684278000 -0400
+@@ -65,7 +65,7 @@ function(test name file)
+ 		-DSRC_DIR=${CMAKE_CURRENT_SOURCE_DIR}
+ 		-DBIN_DIR=${CMAKE_CURRENT_BINARY_DIR}/${file}
+ 		-DVERSIONS=${VERSIONS}
+-		-DCONFIG=$<CONFIG>
++		-DCONFIG=$<CONFIGURATION>
+ 		-P ${CMAKE_CURRENT_SOURCE_DIR}/${file}.cmake)
+ 
+ 	set_tests_properties(${name} PROPERTIES
+diff -up pmdk-convert-1.5/tests/helpers.cmake.orig pmdk-convert-1.5/tests/helpers.cmake
+--- pmdk-convert-1.5/tests/helpers.cmake.orig	2018-10-26 12:23:57.000000000 -0400
++++ pmdk-convert-1.5/tests/helpers.cmake	2019-03-22 12:47:31.214242000 -0400
+@@ -29,7 +29,7 @@
+ # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+ # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+-cmake_minimum_required(VERSION 3.3)
++cmake_minimum_required(VERSION 2.8)
+ set(DIR ${PARENT_DIR}/😘⠝⠧⠍⠇ɗPMDKӜ⥺🙋${TEST_NAME})
+ 
+ # convert the version list to the array
+@@ -49,10 +49,11 @@ function(check_open pool correct)
+ 	string(REPLACE " " ";" correct ${correct})
+ 	foreach(it ${VERSIONS})
+ 		string(REPLACE "." "" app ${it})
+-		if (${it} IN_LIST correct)
+-			execute(0 ${TEST_DIR}/open_${app} ${pool})
+-		else()
++		list(FIND correct ${it} index)
++		if (index LESS 0)
+ 			execute(2 ${TEST_DIR}/open_${app} ${pool})
++		else()
++			execute(0 ${TEST_DIR}/open_${app} ${pool})
+ 		endif()
+ 	endforeach(it)
+ endfunction(check_open)
